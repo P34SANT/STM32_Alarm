@@ -41,7 +41,7 @@ const Config_t g_default_config =
 
 
 
-
+HAL_StatusTypeDef st;
 
 void SystemClock_Config(void);
 void StartDefaultTask(void *argument);
@@ -94,9 +94,11 @@ int main(void)
 
 void LED_task(void *argument)
 {
-
+  volatile char str[] = "" ;
   while(1)
   {
+   // HAL_UART_Receive_DMA(&huart1 , (uint8_t *)str , 16);
+  //  HAL_UART_Transmit_DMA(&huart1 , (uint8_t *)str , 16);
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
@@ -114,7 +116,7 @@ void SENSOR_task(void *argument){
   const char *str1 = "isnt active\n\r" ;
   uint8_t sensors_state  = 0;
   
-  TickType_t NOW = 0; 
+  //TickType_t NOW = 0; 
   
   while(1){
     
@@ -124,14 +126,14 @@ void SENSOR_task(void *argument){
                   sensors_state = read_sensors();
                   if(sensors_state == 1){
                     
-                          HAL_UART_Transmit(&huart1 , (uint8_t *)str , 11 , HAL_MAX_DELAY ); 
+                          st = HAL_UART_Transmit_DMA(&huart1, (uint8_t *)str, 11);
        
                   }else{
-                          HAL_UART_Transmit(&huart1 , (uint8_t *)str1 , 13 , HAL_MAX_DELAY ); 
+                          st = HAL_UART_Transmit_DMA(&huart1 , (uint8_t *)str1 , 13  ); 
      }
      }else{
      
-       HAL_UART_Transmit(&huart1 , (uint8_t *)str1 , 13 , HAL_MAX_DELAY ); 
+     st = HAL_UART_Transmit_DMA(&huart1 , (uint8_t *)str1 , 13  ); 
      
     
      

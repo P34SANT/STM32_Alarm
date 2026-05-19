@@ -17,6 +17,7 @@
 
 #include "main.h"
 #include "stm32f1xx_it.h"
+#include "usart.h"
 
 
 extern TIM_HandleTypeDef htim1;
@@ -107,4 +108,17 @@ void TIM1_UP_IRQHandler(void)
 
 }
 
+void DMA1_Channel5_IRQHandler(void)
+{
+    HAL_DMA_IRQHandler(&hdma_usart1_rx);
+}
 
+void DMA1_Channel4_IRQHandler(void)
+{
+    HAL_DMA_IRQHandler(&hdma_usart1_tx);
+}
+
+void USART1_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&huart1);
+}

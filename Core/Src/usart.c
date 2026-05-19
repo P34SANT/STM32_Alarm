@@ -21,6 +21,19 @@
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
+
+void dma_usart1_init(void);
+static void usart1_rx_start(void);
+static void usart1_rx_push(uint16_t size);
+
+uint8_t usart1_rx_dma_buffer[USART1_RX_DMA_SIZE];
+char usart1_rx_line[USART1_RX_DMA_SIZE];
+volatile uint8_t usart1_rx_line_ready = 0;
+static uint16_t usart1_rx_line_pos = 0;
+
+
 /* USART1 init function */
 
 void MX_USART1_UART_Init(void)
@@ -39,7 +52,12 @@ void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
+  
+  dma_usart1_init();
+  
+  
 
+  
 
 }
 /* USART2 init function */
@@ -147,6 +165,126 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 
   }
+}
+
+
+void dma_usart1_init(void){
+    //configure usart1 rx dma
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  hdma_usart1_rx.Instance                 = DMA1_Channel5;
+  hdma_usart1_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  hdma_usart1_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_usart1_rx.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma_usart1_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+  hdma_usart1_rx.Init.Mode                = DMA_NORMAL;
+  hdma_usart1_rx.Init.Priority            = DMA_PRIORITY_MEDIUM; 
+   if (HAL_DMA_Init(&hdma_usart1_rx ) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  
+  huart1.hdmarx = (&hdma_usart1_rx);
+  
+  //configure usart1 tx dma
+    hdma_usart1_tx.Instance                 = DMA1_Channel4;
+  hdma_usart1_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+  hdma_usart1_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_usart1_tx.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_usart1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma_usart1_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+  hdma_usart1_tx.Init.Mode                = DMA_NORMAL;
+  hdma_usart1_tx.Init.Priority            = DMA_PRIORITY_MEDIUM; 
+   if (HAL_DMA_Init(&hdma_usart1_tx ) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  
+  huart1.hdmatx = (&hdma_usart1_tx);
+  
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 6, 1);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+
+  HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(USART1_IRQn);
+  
+  __HAL_LINKDMA(&huart1, hdmarx, hdma_usart1_rx);
+  __HAL_LINKDMA(&huart1, hdmatx, hdma_usart1_tx);
+
+  usart1_rx_line_pos = 0;
+  usart1_rx_line_ready = 0;
+
+  usart1_rx_start();
+  
+}
+
+static void usart1_rx_start(void)
+{
+  if (HAL_UARTEx_ReceiveToIdle_DMA(&huart1, usart1_rx_dma_buffer, USART1_RX_DMA_SIZE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  if (huart->Instance != USART1)
+  {
+    return;
+  }
+
+  usart1_rx_push(Size);
+  usart1_rx_start();
+}
+
+static void usart1_rx_push(uint16_t size)
+{
+  for (uint16_t index = 0; index < size; index++)
+  {
+    char rx_char = (char)usart1_rx_dma_buffer[index];
+
+    if (rx_char == '\r')
+    {
+      continue;
+    }
+
+    if (usart1_rx_line_ready != 0)
+    {
+      continue;
+    }
+
+    if (rx_char == '\n')
+    {
+      usart1_rx_line[usart1_rx_line_pos] = 0;
+      usart1_rx_line_ready = 1;
+      usart1_rx_line_pos = 0;
+      return;
+    }
+
+    if (usart1_rx_line_pos < (USART1_RX_DMA_SIZE - 1U))
+    {
+      usart1_rx_line[usart1_rx_line_pos] = rx_char;
+      usart1_rx_line_pos++;
+      usart1_rx_line[usart1_rx_line_pos] = 0;
+    }
+    else
+    {
+      usart1_rx_line_pos = 0;
+      usart1_rx_line[0] = 0;
+    }
+  }
+}
+
+void USART1_RxClear(void)
+{
+  usart1_rx_line_ready = 0;
+  usart1_rx_line_pos = 0;
+  usart1_rx_line[0] = 0;
 }
 
 
