@@ -33,5 +33,18 @@ Release/
 !.cproject
 !.mxproject
 !.settings/
+!BrowseInfo/
+.ninja_deps
+.ninja_log
+!settings/
 
-git.txt
+# EWARM / IAR
+EWARM/settings/
+EWARM/Debug/
+EWARM/Release/
+EWARM/Obj/
+EWARM/List/
+EWARM/Exe/
+
+# Browse info
+BrowseInfo/
