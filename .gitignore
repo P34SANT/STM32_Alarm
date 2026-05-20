@@ -45,7 +45,7 @@ EWARM/Release/
 EWARM/Obj/
 EWARM/List/
 EWARM/Exe/
-EWARM/CSTAT/
+EWARM/C-STAT/
 *.sim
 # Browse info
 BrowseInfo/
