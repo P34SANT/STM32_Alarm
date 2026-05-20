@@ -33,6 +33,8 @@ extern DMA_HandleTypeDef hdma_usart1_rx;
 
 extern DMA_HandleTypeDef hdma_usart1_tx;
 
+extern uint8_t tmpstr ;
+
 #define USART1_RX_DMA_SIZE 128U
 
 extern uint8_t usart1_rx_dma_buffer[USART1_RX_DMA_SIZE];
