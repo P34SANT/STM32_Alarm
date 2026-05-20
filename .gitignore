@@ -45,7 +45,7 @@ EWARM/Release/
 EWARM/Obj/
 EWARM/List/
 EWARM/Exe/
-EWARM/C-STAT/
+EWARM/STM32-ALARM/
 *.sim
 # Browse info
 BrowseInfo/
