@@ -31,7 +31,7 @@ uint8_t usart1_rx_dma_buffer[USART1_RX_DMA_SIZE];
 char usart1_rx_line[USART1_RX_DMA_SIZE];
 volatile uint8_t usart1_rx_line_ready = 0;
 
-uint8_t tmpstr = 0;
+volatile uint8_t tmpstr = 0;
 
 
 /* USART1 init function */
@@ -56,7 +56,7 @@ void MX_USART1_UART_Init(void)
   HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(USART1_IRQn);
   
- HAL_UART_Receive_IT(&huart1, &tmpstr , 1);
+ HAL_UART_Receive_IT(&huart1, (uint8_t *)&tmpstr , 1);
   
 
 }

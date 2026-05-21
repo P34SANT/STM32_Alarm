@@ -1807,6 +1807,15 @@
                 <group>
                     <name>inc</name>
                     <file>
+                        <name>$PROJ_DIR$\..\Core\Inc\alarm.h</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Inc\commands.h</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Inc\config.h</name>
+                    </file>
+                    <file>
                         <name>$PROJ_DIR$\..\Core\Inc\FreeRTOSConfig.h</name>
                     </file>
                     <file>
@@ -1825,11 +1834,23 @@
                         <name>$PROJ_DIR$\..\Core\Inc\stm32f1xx_it.h</name>
                     </file>
                     <file>
+                        <name>$PROJ_DIR$\..\Core\Inc\terminal.h</name>
+                    </file>
+                    <file>
                         <name>$PROJ_DIR$\..\Core\Inc\usart.h</name>
                     </file>
                 </group>
                 <group>
                     <name>src</name>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Src\alarm.c</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Src\commands.c</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Src\config.c</name>
+                    </file>
                     <file>
                         <name>$PROJ_DIR$\..\Core\Src\freertos.c</name>
                     </file>
@@ -1850,6 +1871,9 @@
                     </file>
                     <file>
                         <name>$PROJ_DIR$\..\Core\Src\stm32f1xx_it.c</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\Core\Src\terminal.c</name>
                     </file>
                     <file>
                         <name>$PROJ_DIR$\..\Core\Src\usart.c</name>

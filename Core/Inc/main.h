@@ -1,3 +1,4 @@
+
 /**
   ******************************************************************************
   * @file           : main.h
@@ -25,13 +26,22 @@ extern "C" {
 
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
-
+#include "FreeRTOS.h"
+#include "task.h"
+#include "usart.h"
+#include "gpio.h"
+#include "sensors.h"
+#include "semphr.h"
+#include "event_groups.h"
+#include "commands.h"
+#include "config.h"
+#include "terminal.h"
 void Error_Handler(void);
 
 
 #define LED_Pin              GPIO_PIN_13
 #define LED_GPIO_Port        GPIOC
-#define sensor1_Pin          GPIO_PIN_3
+#define sensor1_Pin          GPIO_PIN_8
 #define sensor1_GPIO_Port    GPIOB
 #define sensor2_Pin          GPIO_PIN_4
 #define sensor2_GPIO_Port    GPIOB
@@ -41,37 +51,8 @@ void Error_Handler(void);
 #define siren_GPIO_Port      GPIOB
 
 
-#define CONFIG_MAGIC            0x43464731UL   // "CFG1"
-#define CONFIG_VERSION          1U
 
-#define PHONE_DIGITS            10U
-#define PHONE_STR_LEN           (PHONE_DIGITS + 1U)   // + '\0'
-#define MAX_OWNER_NUMBERS       5U
-
-typedef struct
-{
-    uint32_t magic;
-    uint16_t version;
-    uint16_t length;
-
-    uint8_t  arm_state;
-    uint8_t  sensor1_enabled;
-    uint8_t  sensor2_enabled;
-    uint8_t  sensor3_enabled;
-    uint8_t  siren_enabled;
-
-    uint8_t  boot_grace_s;
-    uint16_t sensor_grace_ms;
-    uint16_t sensor_check_ms;
-    uint16_t reserved0;
-
-    char     call_number[PHONE_STR_LEN];
-    char     owner_numbers[MAX_OWNER_NUMBERS][PHONE_STR_LEN];
-
-    uint32_t crc32;
-} Config_t;
-
-
+extern EventBits_t waitBitsResult;//debugging in alarm
 
 
 #ifdef __cplusplus

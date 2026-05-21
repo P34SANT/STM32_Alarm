@@ -1,9 +1,9 @@
+//sensor.c
 #include "sensors.h"
 
 
 
-
-
+TaskHandle_t sensor_task_handle;
 
 
 volatile GPIO_PinState sensor1_state = GPIO_PIN_RESET, sensor2_state = GPIO_PIN_RESET , sensor3_state  =GPIO_PIN_RESET ;
@@ -43,3 +43,35 @@ uint8_t read_sensors(void){
   }
   
 }
+
+//sensor tasks
+void sensor_task(void *argument){
+  
+
+  uint8_t sensors_state  = 0;
+  
+
+  while(1){
+    
+     sensors_state = read_sensors();
+     if(sensors_state == 1){
+                  vTaskDelay(pdMS_TO_TICKS(debounce_time_ms));
+                  sensors_state = read_sensors();
+                  if(sensors_state == 1){
+                    
+                          alarm_fire();
+
+       
+                  }else{ terminal_write_string("debounced\r\n" );  }
+     }else{
+     
+
+     }
+     
+     vTaskDelay(pdMS_TO_TICKS(poll_interval_ms));
+    
+    
+  }//end while
+  
+  
+}//end task

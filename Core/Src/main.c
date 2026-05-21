@@ -1,58 +1,51 @@
-
+//main.c
+//includes
 #include <string.h>
 #include "main.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "usart.h"
-#include "gpio.h"
-#include "sensors.h"
-#include "semphr.h"
-#include "event_groups.h"
-
-#define ALARM_ON_BIT      (1U<<0)
-#define ALARM_OFF_BIT     (1U<<3)
-
-//temp flags must be replaced with config struct
-uint8_t f_auto_shutdown      = 0;
-uint8_t f_siren_enabled      = 1;
-uint8_t auto_shutdown_second = 5;
+#include "alarm.h"
 
 
 
-TimerHandle_t auto_shutdown_timer;
-HAL_StatusTypeDef st;
 
+
+
+
+//prototypes
 void SystemClock_Config(void);
-void StartDefaultTask(void *argument);
-void LED_task(void *argument);
-void sensor_task(void *argument);
-void alarm_task(void *argument);
-void usart1_parser (void* params);
+
 void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer);
 
-TaskHandle_t alarm_task_handle;
-TaskHandle_t sensor_task_handle;
-TaskHandle_t usart1_parser_handle;
 
-QueueHandle_t usart1_queue;
 
-EventGroupHandle_t alarm_events;
-EventBits_t waitBitsResult; // for alarm task debugging
+
+
+
+//global vars
 uint8_t idletest = 0 ;
 
+EventBits_t waitBitsResult; // for alarm task debugging
 
+HAL_StatusTypeDef st;
 
 
 int main(void)
 {
+  //system inits
   HAL_Init();
   SystemClock_Config();
 
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  //user inits
   
-  usart1_queue = xQueueCreate( 50 , sizeof(uint8_t));
+  
+  
+  
+  //rtos creates
+  usart1_parser_queue      = xQueueCreate( 50 , sizeof(uint8_t));
+  
+  usart1_transmitter_queue = xQueueCreate( 200 , sizeof(uint8_t));
   
   alarm_events = xEventGroupCreate(); 
   
@@ -72,143 +65,38 @@ int main(void)
   {
     Error_Handler();
   }
+  
+    if (xTaskCreate(usart1_transmitter, "u1 transmitter ", 512, NULL, 1 , &usart1_transmitter_handle) != pdPASS)
+  {
+    Error_Handler();
+  }
+
 
   HAL_GPIO_WritePin(LED_GPIO_Port   , LED_Pin   , GPIO_PIN_SET);
   
   
   
-  
+  //start scheduler
   vTaskStartScheduler();
 
   Error_Handler();
   
   
-  
-  
 }
 
 
-
-
-
-void sensor_task(void *argument){
-  
-
-  uint8_t sensors_state  = 0;
-  
-
-  
-  while(1){
-    
-     sensors_state = read_sensors();
-     if(sensors_state == 1){
-                  vTaskDelay(pdMS_TO_TICKS(200));
-                  sensors_state = read_sensors();
-                  if(sensors_state == 1){
-                    
-                          
-                          xEventGroupSetBits(alarm_events , ALARM_ON_BIT );
-                          xEventGroupClearBits(alarm_events , ALARM_OFF_BIT );
-       
-                  }else{
-                          
-     }
-     }else{
-     
-    
-     
-    
-     
-     }
-     
-     vTaskDelay(pdMS_TO_TICKS(1000));
-    
-    
-  }
-  
-  
-}
-
-void alarm_task(void *argument){
-  
-  uint8_t state = 0;
-  
-  
-  
-  while(1){
-    
-   waitBitsResult = xEventGroupWaitBits(alarm_events , ALARM_ON_BIT | ALARM_OFF_BIT , pdFALSE , pdFALSE , portMAX_DELAY ) ;
-   if((ALARM_ON_BIT & waitBitsResult) ){
-     if(state == 0){
-       if(f_auto_shutdown){xTimerStart(auto_shutdown_timer , 0 );}
-       if(f_siren_enabled){
-                    HAL_GPIO_WritePin(siren_GPIO_Port , siren_Pin , GPIO_PIN_SET) ;
-                    HAL_GPIO_WritePin(LED_GPIO_Port   , LED_Pin   , GPIO_PIN_RESET) ;
-                    HAL_UART_Transmit(&huart1 , (uint8_t *)"Siren onn\n\r" , 11 , 100 );
-       }
-                    HAL_UART_Transmit(&huart1 , (uint8_t *)"Alarm onn\n\r" , 11 , 100 );
-                    state = 1;
-     }
-                  
-   }else{
-     if(state == 1){
-     HAL_GPIO_WritePin(LED_GPIO_Port   , LED_Pin   , GPIO_PIN_SET);
-     HAL_GPIO_WritePin(siren_GPIO_Port , siren_Pin , GPIO_PIN_RESET); 
-     HAL_UART_Transmit(&huart1 , (uint8_t *)"Alarm off\n\r" , 11 , 100 );
-     state = 0;
-     xEventGroupClearBits(alarm_events , ALARM_OFF_BIT );
-     }
-   }
-   vTaskDelay(pdMS_TO_TICKS(500));
-  }//end while
-  
-}//end task
-
-void usart1_parser (void* params){
-
-	uint8_t receivedByte;
-
-	BaseType_t qStatus;
-	while(1){
-		qStatus = xQueueReceive(usart1_queue , &receivedByte , portMAX_DELAY);
-		if(qStatus != pdPASS){
-			HAL_UART_Transmit_DMA(&huart1 , (uint8_t *)"usart1 parser failed\n\r" , 22 );
-		}else{
-
-			if(receivedByte == '1'){
-				 xEventGroupSetBits(alarm_events , ALARM_ON_BIT );
-                                 xEventGroupClearBits(alarm_events , ALARM_OFF_BIT );
-
-			}else if(receivedByte == '0'){
-                          xEventGroupSetBits(alarm_events , ALARM_OFF_BIT );
-                          xEventGroupClearBits(alarm_events , ALARM_ON_BIT );
-                         
-				
-			}else {
-				
-			}
-
-
-
-
-
-		}
-
-	}//end while
-
-}//end task
 
 
 void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer){
 
-	HAL_UART_Transmit(&huart1, (uint8_t *)"auto shutdown timer passed\n\r", 28, HAL_MAX_DELAY);
-        xEventGroupSetBits(alarm_events , ALARM_OFF_BIT );
-        xEventGroupClearBits(alarm_events , ALARM_ON_BIT );
+        terminal_write_string("auto shut down timer reached !\r\n" );
+        alarm_shutdown();
 }
 
 
 void vApplicationIdleHook(){
 	idletest++;
+        
 }
 
 
@@ -220,8 +108,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	uint8_t receivedByte = tmpstr;
 
         if( huart->Instance == USART1){
-	xQueueSendFromISR(usart1_queue , &receivedByte , &HP_Task_Woken );
-	HAL_UART_Receive_IT(&huart1, &tmpstr , 1);
+	xQueueSendFromISR(usart1_parser_queue , &receivedByte , &HP_Task_Woken );
+	HAL_UART_Receive_IT(&huart1, (uint8_t *)&tmpstr , 1);
         }
 
 	portYIELD_FROM_ISR(HP_Task_Woken);

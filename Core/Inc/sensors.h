@@ -9,7 +9,8 @@ extern "C" {
 
   
 uint8_t read_sensors(void);
-
+extern TaskHandle_t sensor_task_handle;
+void sensor_task(void *argument);
 
 
 #ifdef __cplusplus
