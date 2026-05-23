@@ -49,8 +49,7 @@ int main(void)
   alarm_events = xEventGroupCreate(); 
   
   auto_shutdown_timer = xTimerCreate("autoshutdown timer" , auto_shutdown_second * 1000 , pdFALSE , NULL , auto_shutdown_callBack);
-  
-  usart1_mutex = xSemaphoreCreateMutex();
+
   
   
   if (xTaskCreate(alarm_task , "siren ", 128, NULL, 2, &alarm_task_handle) != pdPASS)
@@ -62,7 +61,7 @@ int main(void)
   {
     Error_Handler();
   }
-  if (xTaskCreate(usart1_parser, "u1 parser ", 512, NULL, 3, &usart1_parser_handle) != pdPASS)
+  if (xTaskCreate(usart1_parser, "u1 parser ", 256, NULL, 3, &usart1_parser_handle) != pdPASS)
   {
     Error_Handler();
   }
