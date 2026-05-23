@@ -10,21 +10,27 @@ volatile GPIO_PinState sensor1_state = GPIO_PIN_RESET, sensor2_state = GPIO_PIN_
 
 void read_sensor_1(void){
   
-  sensor1_state =  HAL_GPIO_ReadPin(sensor1_GPIO_Port , sensor1_Pin);
-  
+  if(f_sensor1_enabled)
+     sensor1_state =  HAL_GPIO_ReadPin(sensor1_GPIO_Port , sensor1_Pin);
+  else
+     sensor1_state = 1;
   
 } 
 void read_sensor_2(void){
   
-  sensor2_state =  HAL_GPIO_ReadPin(sensor2_GPIO_Port , sensor2_Pin);
-  
+  if(f_sensor2_enabled)
+    sensor2_state =  HAL_GPIO_ReadPin(sensor2_GPIO_Port , sensor2_Pin);
+  else
+    sensor2_state = 1;
+    
   
 }
 
 void read_sensor_3(void){
-  
-  sensor3_state = HAL_GPIO_ReadPin(sensor3_GPIO_Port , sensor3_Pin);
-    
+  if(f_sensor3_enabled)
+      sensor3_state = HAL_GPIO_ReadPin(sensor3_GPIO_Port , sensor3_Pin);
+  else 
+      sensor3_state = 1;
 }
 
 uint8_t read_sensors(void){
