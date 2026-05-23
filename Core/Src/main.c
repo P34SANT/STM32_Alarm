@@ -6,17 +6,13 @@
 
 
 
-
-
-
-
 //prototypes
 void SystemClock_Config(void);
 
 void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer);
 
 
-
+void MonitorTask(void *pvParameters) ;
 
 
 
@@ -27,6 +23,7 @@ EventBits_t waitBitsResult; // for alarm task debugging
 
 HAL_StatusTypeDef st;
 
+TaskHandle_t monitor_task_handle = NULL;
 
 int main(void)
 {
@@ -51,13 +48,15 @@ int main(void)
   
   auto_shutdown_timer = xTimerCreate("autoshutdown timer" , auto_shutdown_second * 1000 , pdFALSE , NULL , auto_shutdown_callBack);
   
-
-  if (xTaskCreate(alarm_task , "siren ", 512, NULL, 2, &alarm_task_handle) != pdPASS)
+  usart1_mutex = xSemaphoreCreateMutex();
+  
+  
+  if (xTaskCreate(alarm_task , "siren ", 128, NULL, 2, &alarm_task_handle) != pdPASS)
   {
     Error_Handler();
   }
 
-  if (xTaskCreate(sensor_task, "sensor", 512, NULL, 1, &sensor_task_handle) != pdPASS)
+  if (xTaskCreate(sensor_task, "sensor", 128, NULL, 1, &sensor_task_handle) != pdPASS)
   {
     Error_Handler();
   }
@@ -66,7 +65,12 @@ int main(void)
     Error_Handler();
   }
   
-    if (xTaskCreate(usart1_transmitter, "u1 transmitter ", 512, NULL, 1 , &usart1_transmitter_handle) != pdPASS)
+    if (xTaskCreate(usart1_transmitter, "u1 transmitter ", 128, NULL, 1 , &usart1_transmitter_handle) != pdPASS)
+  {
+    Error_Handler();
+  }
+  
+      if (xTaskCreate(MonitorTask, "m", 512, NULL, 1 , &monitor_task_handle) != pdPASS)
   {
     Error_Handler();
   }
@@ -75,6 +79,7 @@ int main(void)
   HAL_GPIO_WritePin(LED_GPIO_Port   , LED_Pin   , GPIO_PIN_SET);
   
   
+  terminal_help();
   
   //start scheduler
   vTaskStartScheduler();
@@ -82,6 +87,35 @@ int main(void)
   Error_Handler();
   
   
+}
+
+
+
+
+void MonitorTask(void *pvParameters) {
+
+    TaskHandle_t taskHandles[] = {alarm_task_handle, sensor_task_handle, usart1_parser_handle, usart1_transmitter_handle};
+    const char *taskNames[] = {"alarm task", "sensor task ", "u1 parser", "u1 transmitter"};
+    
+    uint8_t numTasks = sizeof(taskHandles) / sizeof(TaskHandle_t);
+
+    while(1) {
+        terminal_write_string("--- Stack Water Mark Report ---\r\n");
+        
+        for(int i = 0; i < numTasks; i++) {
+            UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(taskHandles[i]);
+            
+            terminal_write_string(taskNames[i]);
+            terminal_write_string(" : ");
+            terminal_write_string("Free: ");
+            terminal_write_num((uint32_t)uxHighWaterMark); 
+            terminal_write_string(" words\r\n");
+        }
+        
+        terminal_write_string("-------------------------------\r\n");
+        
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
 }
 
 
