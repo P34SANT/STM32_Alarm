@@ -10,6 +10,9 @@
 uint16_t debounce_time_ms = 200;
 uint16_t poll_interval_ms = 1000;
 
+uint8_t  f_sensor1_enabled = 1;
+uint8_t  f_sensor2_enabled = 1;
+uint8_t  f_sensor3_enabled = 1;
 
 uint8_t f_auto_shutdown      = 1;
 uint8_t f_siren_enabled      = 1;

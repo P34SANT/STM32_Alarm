@@ -10,7 +10,9 @@ extern "C" {
   
 extern uint16_t debounce_time_ms ;
 extern uint16_t poll_interval_ms;
-
+extern uint8_t  f_sensor1_enabled;
+extern uint8_t  f_sensor2_enabled;
+extern uint8_t  f_sensor3_enabled;
 
 extern uint8_t f_auto_shutdown ;
 extern uint8_t f_siren_enabled ;
