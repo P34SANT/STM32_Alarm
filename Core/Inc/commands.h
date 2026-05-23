@@ -11,6 +11,10 @@ void alarm_shutdown(void);
 
 void alarm_fire(void);
 
+void siren_enable (void);
+
+
+void siren_disable (void);
 
 
 #ifdef __cplusplus

@@ -14,8 +14,6 @@ void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer);
 
 void MonitorTask(void *pvParameters) ;
 
-
-
 //global vars
 uint8_t idletest = 0 ;
 
@@ -100,6 +98,7 @@ void MonitorTask(void *pvParameters) {
     uint8_t numTasks = sizeof(taskHandles) / sizeof(TaskHandle_t);
 
     while(1) {
+      if(f_monitor){
         terminal_write_string("--- Stack Water Mark Report ---\r\n");
         
         for(int i = 0; i < numTasks; i++) {
@@ -113,8 +112,8 @@ void MonitorTask(void *pvParameters) {
         }
         
         terminal_write_string("-------------------------------\r\n");
-        
-        vTaskDelay(pdMS_TO_TICKS(5000));
+      }
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -129,6 +128,7 @@ void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer){
 
 
 void vApplicationIdleHook(){
+  
 	idletest++;
         
 }
@@ -213,6 +213,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 
 }
+
 
 /**
   * @brief  This function is executed in case of error occurrence.

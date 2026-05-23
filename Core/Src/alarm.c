@@ -21,7 +21,7 @@ void alarm_task(void *argument){
   
   
   while(1){
-    
+   
    waitBitsResult = xEventGroupWaitBits(alarm_events , ALARM_ON_BIT | ALARM_OFF_BIT , pdFALSE , pdFALSE , portMAX_DELAY ) ;
    if((ALARM_ON_BIT & waitBitsResult) ){
      if(state == 0){

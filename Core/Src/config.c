@@ -14,7 +14,8 @@ uint16_t poll_interval_ms = 1000;
 uint8_t f_auto_shutdown      = 1;
 uint8_t f_siren_enabled      = 1;
 uint8_t auto_shutdown_second = 5;
-
+uint8_t f_armed              = 0;
+uint8_t f_monitor            = 0;
 //config struct for later on to write into flash. rn we use normal vars
 typedef struct
 {

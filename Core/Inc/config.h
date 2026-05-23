@@ -15,10 +15,9 @@ extern uint16_t poll_interval_ms;
 extern uint8_t f_auto_shutdown ;
 extern uint8_t f_siren_enabled ;
 extern uint8_t auto_shutdown_second ;
+extern uint8_t f_armed;
 
-
-
-
+extern uint8_t f_monitor ;
 #ifdef __cplusplus
 }
 #endif
