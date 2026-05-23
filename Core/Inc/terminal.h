@@ -15,8 +15,6 @@ extern TaskHandle_t usart1_transmitter_handle;;
 
 extern QueueHandle_t usart1_parser_queue;
 
-extern SemaphoreHandle_t usart1_mutex;
-
 void usart1_parser (void* params);
 
 void usart1_transmitter (void* params);

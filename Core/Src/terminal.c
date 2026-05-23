@@ -7,10 +7,10 @@ TaskHandle_t usart1_parser_handle;
 TaskHandle_t usart1_transmitter_handle;
 QueueHandle_t usart1_parser_queue;
 QueueHandle_t usart1_transmitter_queue;
-SemaphoreHandle_t usart1_mutex;
+
 
 void terminal_help (void){
-     xSemaphoreTake(usart1_mutex , portMAX_DELAY);
+
      
      HAL_UART_Transmit(&huart1 , (uint8_t *)"-------\r\n" , 9 , 200);
      
@@ -26,9 +26,17 @@ void terminal_help (void){
      
      HAL_UART_Transmit(&huart1 , (uint8_t *)"siren disable   : 5\r\n"  , 20 , 200);
      
+     HAL_UART_Transmit(&huart1 , (uint8_t *)"get status      : 6\r\n"  , 20 , 200);
+     
+     HAL_UART_Transmit(&huart1 , (uint8_t *)"get status      : 6\r\n"  , 20 , 200);
+     
+     HAL_UART_Transmit(&huart1 , (uint8_t *)"arm             : 7\r\n"  , 20 , 200);
+     
+     HAL_UART_Transmit(&huart1 , (uint8_t *)"disarm          : 8\r\n"  , 20 , 200);
+     
      HAL_UART_Transmit(&huart1 , (uint8_t *)"-------\r\n" , 9 , 200);
      
-     xSemaphoreGive(usart1_mutex);
+
 
 }
 
@@ -62,7 +70,7 @@ void usart1_transmitter (void* params){
 
 	BaseType_t qStatus;
 	while(1){
-                 xSemaphoreTake(usart1_mutex , portMAX_DELAY);
+            
 
           
 		qStatus = xQueueReceive(usart1_transmitter_queue , &receivedByte , portMAX_DELAY);
@@ -72,12 +80,14 @@ void usart1_transmitter (void* params){
 
                         HAL_UART_Transmit(&huart1 , &receivedByte , sizeof(uint8_t) , 10);
 
-                  xSemaphoreGive(usart1_mutex);
+                 
 
 
 
 
 		}
+                
+              
 
 	}//end while
 
@@ -94,38 +104,66 @@ void usart1_parser (void* params){
 			HAL_UART_Transmit(&huart1 , (uint8_t *)"usart1 parser failed\n\r" , 22, 100 );
 		}else{
 
-			if      (receivedByte == '1'){
-                          
+                        switch (receivedByte)
+                        {
+                            case '1':
+                            {
                                 alarm_fire();
-                                
-			}else if(receivedByte == '0'){
-                          
+                                break;
+                            }
+
+                            case '0':
+                            {
                                 alarm_shutdown();
-				
-			}else if(receivedByte == '2'){
-                          
-                          f_monitor = 1;
-                       
-			}else if(receivedByte == '3'){
-                          
-                          f_monitor = 0;
-                          
-                        }else if(receivedByte == '4'){
-                          
-                          siren_enable();
-                          
-                        }else if(receivedByte == '5'){
-                          
-                          siren_disable();
-                          
-			}else {
-                          
-                          terminal_help();
+                                break;
+                            }
+
+                            case '2':
+                            {
+                                f_monitor = 1;
+                                break;
+                            }
+
+                            case '3':
+                            {
+                                f_monitor = 0;
+                                break;
+                            }
+
+                            case '4':
+                            {
+                                siren_enable();
+                                break;
+                            }
+
+                            case '5':
+                            {
+                                siren_disable();
+                                break;
+                            }
+                            case '6':
+                            {
+                                status();
+                                break;
+                            }
+                            case '7':
+                            {
+                                arm();
+                                break;
+                            }
+                            case '8':
+                            {
+                                disarm();
+                                break;
+                            }
+                    
+                            default:
+                            {
+                                
+                                terminal_help();
+                                break;
+                            }
                         }
-
-
-
-
 
 		}
 
