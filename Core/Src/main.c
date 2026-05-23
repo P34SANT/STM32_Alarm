@@ -5,16 +5,20 @@
 #include "alarm.h"
 
 
-
 //prototypes
 void SystemClock_Config(void);
 
 void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer);
 
-
 void MonitorTask(void *pvParameters) ;
 
+void IWDG_Init(void);
+
+
 //global vars
+
+IWDG_HandleTypeDef hiwdg;
+
 uint8_t idletest = 0 ;
 
 EventBits_t waitBitsResult; // for alarm task debugging
@@ -22,6 +26,7 @@ EventBits_t waitBitsResult; // for alarm task debugging
 HAL_StatusTypeDef st;
 
 TaskHandle_t monitor_task_handle = NULL;
+
 
 int main(void)
 {
@@ -33,8 +38,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   //user inits
-  
-  
+  IWDG_Init();
   
   
   //rtos creates
@@ -129,7 +133,8 @@ void auto_shutdown_callBack(TimerHandle_t auto_shutdown_timer){
 
 void vApplicationIdleHook(){
   
-	idletest++;
+	HAL_IWDG_Refresh(&hiwdg);
+        idletest++;
         
 }
 
@@ -193,7 +198,17 @@ void SystemClock_Config(void)
   HAL_RCC_EnableCSS();
 }
 
-
+void IWDG_Init(void) {
+  // Prescaler: 64 (IWDG_PRESCALER_64)
+  // Reload: 1250
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_64;
+  hiwdg.Init.Reload = 1250; 
+  
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
+     Error_Handler();
+  }
+}
 
 
 /**
