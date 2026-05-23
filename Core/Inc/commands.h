@@ -13,10 +13,13 @@ void alarm_fire(void);
 
 void siren_enable (void);
 
+void status (void);
 
 void siren_disable (void);
 
+void arm(void);
 
+void disarm(void);
 #ifdef __cplusplus
 }
 #endif
