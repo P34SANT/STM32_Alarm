@@ -8,8 +8,10 @@ TaskHandle_t usart1_parser_handle;
 TaskHandle_t usart1_transmitter_handle;
 QueueHandle_t usart1_parser_queue;
 QueueHandle_t usart1_transmitter_queue;
+SemaphoreHandle_t usart1_mutex;
 
 void terminal_help (void){
+     xSemaphoreTake(usart1_mutex , portMAX_DELAY);
      HAL_UART_Transmit(&huart1 , (uint8_t *)"--------------------------------------------------\r\n" , 50 , 200);
      
      HAL_UART_Transmit(&huart1 , (uint8_t *)"turn off alarm : 0\r\n" , 19 , 200);
@@ -17,14 +19,14 @@ void terminal_help (void){
      HAL_UART_Transmit(&huart1 , (uint8_t *)"turn on alarm  : 1\r\n" , 19 , 200);
      
      HAL_UART_Transmit(&huart1 , (uint8_t *)"--------------------------------------------------\r\n" , 50 , 200);
-      
+     xSemaphoreGive(usart1_mutex);
 
 }
 
 
 void terminal_write_num(uint32_t num)
 {
-    char buffer[20];
+    char buffer[20] = "";
 
     int len = snprintf(buffer, sizeof(buffer), "%u", num);
 
@@ -51,6 +53,9 @@ void usart1_transmitter (void* params){
 
 	BaseType_t qStatus;
 	while(1){
+                 xSemaphoreTake(usart1_mutex , portMAX_DELAY);
+
+          
 		qStatus = xQueueReceive(usart1_transmitter_queue , &receivedByte , portMAX_DELAY);
 		if(qStatus != pdPASS){
 			HAL_UART_Transmit(&huart1 , (uint8_t *)"usart1 transmitter failed\n\r" , 27, 100 );
@@ -58,6 +63,7 @@ void usart1_transmitter (void* params){
 
                         HAL_UART_Transmit(&huart1 , &receivedByte , sizeof(uint8_t) , 10);
 
+                  xSemaphoreGive(usart1_mutex);
 
 
 
